@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'uri'
 require 'thor/core_ext/file_binary_read'
 
 Dir[File.join(File.dirname(__FILE__), "actions", "*.rb")].each do |action|
@@ -180,7 +181,14 @@ class Thor
 
       say_status :apply, path, verbose
       shell.padding += 1 if verbose
-      instance_eval(open(path).read)
+
+      if URI(path).is_a?(URI::HTTP)
+        io = open(path, "Accept" => "application/x-thor-template")
+      else
+        io = open(path)
+      end
+
+      instance_eval(io.read)
       shell.padding -= 1 if verbose
     end
 
